@@ -1376,6 +1376,7 @@ void initServerConfig() {
     server.repl_timeout = REDIS_REPL_TIMEOUT;
 
     // 集群相关
+    //集群和复制的联系???
     server.cluster_enabled = 0;
     server.cluster.configfile = zstrdup("nodes.conf");
 
@@ -1420,6 +1421,8 @@ void initServerConfig() {
     server.client_obuf_limits[REDIS_CLIENT_LIMIT_CLASS_PUBSUB].soft_limit_seconds = 60;
 
     /* Double constants initialization */
+    //浮点数除以0.0程序ok，整数除以0程序中断
+    //浮点数0.0是近似表示，一个正数除以趋于0的数得到一个正无穷大，也就是infinity，printf出来是非数字
     R_Zero = 0.0;
     R_PosInf = 1.0/R_Zero;
     R_NegInf = -1.0/R_Zero;
@@ -1429,7 +1432,9 @@ void initServerConfig() {
      * initial configuration, since command names may be changed via
      * redis.conf using the rename-command directive. */
     // 命令表
+    //commandTableDictType命令表的词典方法
     server.commands = dictCreate(&commandTableDictType,NULL);
+    //将命令由结构体数组放到字典里，并把以下5个命令通过字典指向相应的命令结构体
     populateCommandTable();
     server.delCommand = lookupCommandByCString("del");
     server.multiCommand = lookupCommandByCString("multi");
@@ -1502,6 +1507,7 @@ void adjustOpenFilesLimit(void) {
 void initServer() {
     int j;
 
+    //关闭终端收到的信号
     signal(SIGHUP, SIG_IGN);
     signal(SIGPIPE, SIG_IGN);
     setupSignalHandlers();
@@ -1668,6 +1674,7 @@ void initServer() {
 /* Populates the Redis Command Table starting from the hard coded list
  * we have on top of redis.c file. */
 // 根据命令中的文字 FLAG ，为命令设置真正的 FLAG 标签
+//将命令表由结构体数组载入字典中，加快查找
 void populateCommandTable(void) {
     int j;
     int numcommands = sizeof(redisCommandTable)/sizeof(struct redisCommand);
@@ -2253,6 +2260,7 @@ sds genRedisInfoString(char *section) {
         defsections = strcasecmp(section,"default") == 0;
     }
 
+    //得到资源使用情况
     getrusage(RUSAGE_SELF, &self_ru);
     getrusage(RUSAGE_CHILDREN, &c_ru);
     getClientsMaxBuffers(&lol,&bib);
@@ -2819,7 +2827,7 @@ void linuxOvercommitMemoryWarning(void) {
 #endif /* __linux__ */
 
 void createPidFile(void) {
-    /* Try to write the pid file in a best-effort way. */
+    /* Try to write the pid file in a best-effort way. io都进行错误校验*/
     FILE *fp = fopen(server.pidfile,"w");
     if (fp) {
         fprintf(fp,"%d\n",(int)getpid());
@@ -2913,9 +2921,21 @@ void setupSignalHandlers(void) {
     sigemptyset(&act.sa_mask);
     act.sa_flags = SA_NODEFER | SA_RESETHAND | SA_SIGINFO;
     act.sa_sigaction = sigsegvHandler;
+    //Segment Fault
+    /*
+     1) SIGBUS(Bus error)意味着指针所对应的地址是有效地址，但总线不能正常使用该指针。通常是未对齐的数据访问所致。
+     2) SIGSEGV(Segment fault)意味着指针所对应的地址是无效地址，没有物理内存对应该地址。
+     */
     sigaction(SIGSEGV, &act, NULL);
     sigaction(SIGBUS, &act, NULL);
+    /**
+     * floating-point exception
+     * 整数除0
+     */
     sigaction(SIGFPE, &act, NULL);
+    /**
+     * Illegal instruction，一般时cpu架构不同，编译时和实际运行时不一样
+     */
     sigaction(SIGILL, &act, NULL);
 #endif
     return;
@@ -2969,6 +2989,7 @@ int main(int argc, char **argv) {
 
     /* We need to initialize our libraries, and the server configuration. */
     zmalloc_enable_thread_safeness();
+    //申请内存出错会调用handler
     zmalloc_set_oom_handler(redisOutOfMemoryHandler);
     srand(time(NULL)^getpid());
     gettimeofday(&tv,NULL);

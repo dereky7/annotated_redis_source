@@ -12,7 +12,7 @@
  *     documentation and/or other materials provided with the distribution.
  *   * Neither the name of Redis nor the names of its contributors may be used
  *     to endorse or promote products derived from this software without
- *     specific prior written permission.
+ *     specific priozskiplistr written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -1306,7 +1306,7 @@ typedef struct {
 } zrangespec;
 
 zskiplist *zslCreate(void);
-void zslFree(zskiplist *zsl);
+void zslFree(zskiplist *zsl);           //如果可以用while就不要用递归
 zskiplistNode *zslInsert(zskiplist *zsl, double score, robj *obj);
 unsigned char *zzlInsert(unsigned char *zl, robj *ele, double score);
 int zslDelete(zskiplist *zsl, double score, robj *obj);

@@ -1225,6 +1225,13 @@ void processInputBuffer(redisClient *c) {
     }
 }
 
+/**
+ * accept监听读事件后的回调函数
+ * @param el
+ * @param fd
+ * @param privdata
+ * @param mask
+ */
 void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
     redisClient *c = (redisClient*) privdata;
     int nread, readlen;

@@ -120,10 +120,10 @@ typedef struct dict {
     // 哈希表（2个）
     dictht ht[2];       
 
-    // 记录 rehash 进度的标志，值为-1 表示 rehash 未进行
+    // 记录 rehash 进度的标志，值为-1 表示 rehash 未进行,ht[]数组的下标索引，用来遍历
     int rehashidx;
 
-    // 当前正在运作的安全迭代器数量
+    // 当前正在运作的安全迭代器数量，当有迭代器时就不能渐进式hash
     int iterators;      
 
 } dict;
